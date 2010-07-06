@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.1.0|
+|''Version''|0.2.0|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -61,8 +61,10 @@ $('<script type="text/javascript" />').attr("src", uri).appendTo(document.body);
 config.macros.bulkops = {
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
 		var container = $("<div />").addClass(macroName).appendTo(place);
-		init(container, config.extensions.tiddlyweb.host,
-			config.extensions.tiddlyspace.currentSpace.name);
+		var space = config.extensions.tiddlyspace.currentSpace.name;
+		var bags = [space + "_private", space + "_public"];
+		var types = ["private", "public"];
+		render(container, config.extensions.tiddlyweb.host, bags, types);
 	}
 };
 
@@ -76,21 +78,20 @@ var errback = function(xhr, error, exc) {
 	console.log("error", arguments); // XXX: DEBUG
 };
 
-var init = function(container, host, space) {
-	var bag = new tiddlyweb.Bag(space + "_private", host);
-	bag.tiddlers().get(function(data, status, xhr) {
-		populate(container, data, "private");
-	}, errback);
-
-	var bag = new tiddlyweb.Bag(space + "_public", host);
-	bag.tiddlers().get(function(data, status, xhr) {
-		populate(container, data, "public");
-	}, errback);
+var render = function(container, host, bags, types) { // XXX: types argument not very pretty
+	types = types || [];
+	$.each(bags, function(i, bag) {
+		var el = $("<ul />").addClass(types[i] || "").appendTo(container);
+		bag = new tiddlyweb.Bag(bag, host);
+		bag.tiddlers().get(function(data, status, xhr) {
+			populate(el, data, types[i]);
+		}, errback);
+	});
 };
 
 var populate = function(container, tiddlers, type) {
 	var dur = "fast";
-	$("<ul />").addClass(type).
+	container.
 		sortable({
 			revert: true,
 			connectWith: "ul.public, ul.private",
@@ -116,8 +117,7 @@ var populate = function(container, tiddlers, type) {
 					el.toggleClass("selected");
 				}
 			})[0];
-		})).
-		appendTo(container);
+		}));
 };
 
 })(jQuery);
