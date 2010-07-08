@@ -102,13 +102,13 @@ var populate = function(container, tiddlers, type) {
 		sortable({
 			revert: true,
 			dropOnEmpty: true,
-			connectWith: "ul.public, ul.private",
+			connectWith: ".bulkops ul",
 			start: function(ev, ui) {
 				ui.item.addClass("selected");
 			},
 			receive: function(ev, ui) {
 				ui.item.removeClass("selected");
-				$("li.selected").not(ui.item).slideUp(dur, function() { // XXX: selector insufficiently scoped
+				$(".bulkops li.selected").not(ui.item).slideUp(dur, function() {
 					$(this).insertAfter(ui.item).slideDown(dur, function() {
 						$(this).removeClass("selected");
 					});
