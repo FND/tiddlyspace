@@ -7,6 +7,7 @@ instance_tiddlers = {
         '../src/styles/index.recipe',
         '../src/plugins/index.recipe',
         '../src/icons/tiddlyspace.recipe',
+        '../src/TiddlySpaceBulkOps.js',
         '../src/external.recipe'
     ],
     'frontpage_public': [
