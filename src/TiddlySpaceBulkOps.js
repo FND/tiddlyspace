@@ -20,12 +20,19 @@
 	padding: 0;
 }
 
+.viewer .bulkops ul {
+	-tw-comment: duplication due to TiddlyWiki specificity;
+	padding: 1px 0 0;
+}
+
 .bulkops ul {
 	float: left;
 	width: 40%;
+	min-height: 1em;
 	margin: 1em;
 	padding-top: 1px;
 	list-style-type: none;
+	background-color: #FFFEE6;
 }
 
 .bulkops li {
@@ -94,6 +101,7 @@ var populate = function(container, tiddlers, type) {
 	container.
 		sortable({
 			revert: true,
+			dropOnEmpty: true,
 			connectWith: "ul.public, ul.private",
 			start: function(ev, ui) {
 				ui.item.addClass("selected");
