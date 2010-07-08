@@ -58,9 +58,9 @@
 var uri = "http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.js";
 $('<script type="text/javascript" />').attr("src", uri).appendTo(document.body);
 
-config.macros.bulkops = {
+config.macros.TiddlySpaceBulkOps = {
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
-		var container = $("<div />").addClass(macroName).appendTo(place);
+		var container = $("<div />").addClass("bulkops").appendTo(place);
 		var space = config.extensions.tiddlyspace.currentSpace.name;
 		var bags = [space + "_private", space + "_public"];
 		var types = ["private", "public"];
