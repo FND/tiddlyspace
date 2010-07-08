@@ -36,11 +36,16 @@
 }
 
 .bulkops li {
+	overflow: auto;
 	border: 1px solid #AAA;
 	margin-top: -1px;
 	text-align: center;
 	background-color: #EEE;
 	cursor: move;
+}
+
+.bulkops li .button {
+	float: right;
 }
 
 .bulkops .public li {
@@ -55,6 +60,7 @@
 
 .bulkops li.selected {
 	background-color: #FED22F;
+	opacity: 0.5;
 }
 !Code
 ***/
@@ -119,12 +125,18 @@ var populate = function(container, tiddlers, type) {
 			}
 		}).
 		append($.map(tiddlers, function(tiddler, i) {
-			return $("<li />").text(tiddler.title).click(function(ev) { // XXX: use live!?
-				var el = $(this);
-				if(!el.hasClass("ui-sortable-helper")) {
-					el.toggleClass("selected");
-				}
-			})[0];
+			var link = createTiddlyLink(null, tiddler.title, true, null, null,
+				null, true); // XXX: TiddlyWiki-specific
+			var btn = $('<a href="javascript:" class="button" />');
+			var delBtn = btn.clone().text("del").attr("title", "delete tiddler"); // TODO: i18n
+			var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"); // TODO: i18n
+			return $("<li />").append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
+				click(function(ev) { // XXX: use live?!
+					var el = $(this);
+					if(!el.hasClass("ui-sortable-helper")) {
+						el.toggleClass("selected");
+					}
+				})[0];
 		}));
 };
 
