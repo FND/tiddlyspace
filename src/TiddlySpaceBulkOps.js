@@ -55,6 +55,7 @@
 
 .bulkops ul li.error {
 	-tw-comment: excessive specificity due to TiddlyWiki -- NB: does not use ColorPalette;
+	border-color: #E77;
 	background-color: #F88;
 }
 
@@ -94,12 +95,6 @@ var name = "StyleSheetBulkOps";
 config.shadowTiddlers[name] = store.getTiddlerText(tiddler.title + "##StyleSheet");
 store.addNotification(name, refreshStyles);
 
-// XXX: temporary
-var errback = function(xhr, error, exc) {
-	displayMessage("error");
-	console.log("error", arguments); // XXX: DEBUG
-};
-
 var render = function(container, host, bags, types) { // XXX: types argument not very pretty
 	types = types || [];
 	container.data("host", host); // XXX: hacky?
@@ -108,7 +103,10 @@ var render = function(container, host, bags, types) { // XXX: types argument not
 		bag = new tiddlyweb.Bag(bag, host);
 		bag.tiddlers().get(function(data, status, xhr) {
 			populate(el, data, types[i]);
-		}, errback);
+		}, function(xhr, error, exc) {
+			$('<li class="error" />').text("failed to load bag " + bag.name). // TODO: i18n
+				appendTo(el); // XXX: use el.replaceWith("<p />") instead of LI?
+		});
 	});
 };
 
