@@ -1,0 +1,7 @@
+tags: excludeLists
+
+/*{{{*/
+#sidebar .wizard table {
+	margin: 0px;
+}
+/*}}}*/

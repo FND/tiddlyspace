@@ -36,3 +36,7 @@ tags: excludeLists
 .command_cloneTiddler .editCommandStopColor2 {
 	stop-color:#00A;
 }
+
+.command_savePublicTiddler .saveCommandStopColor2 {
+	stop-color:#C7EAFF;
+}

@@ -17,15 +17,25 @@ tags: excludeLists
 	top: 0;
 	position: absolute;
 	width: 100%;
+	margin-top: 1px;
+}
+
+#backstageLogo .svgIconText {
+	display: none;
 }
 
 #backstageArea {
 	background: -webkit-gradient(linear,left bottom,left top,color-stop(0.05, rgb(0,0,0)),color-stop(0.5, rgb(0,0,0)),color-stop(1, rgb(219,219,219)));
 	background: -moz-linear-gradient(center bottom,rgb(0,0,0) 5%,rgb(0,0,0) 50%,rgb(219,219,219) 100%);
+	height: 26px;
 }
 
 .backstageBackground {
 	fill: black;
+}
+
+#backstageButton {
+	overflow: hidden;
 }
 
 #backstageButton #backstageShow,
@@ -34,9 +44,10 @@ tags: excludeLists
 	padding: 0px;
 }
 
-#backstageButton #backstageShow: hover,
-#backstageButton #backstageHide: hover {
+#backstageButton #backstageShow:hover,
+#backstageButton #backstageHide:hover {
 	background: none;
+	color: none;
 }
 
 #backstageShow {
@@ -44,8 +55,8 @@ tags: excludeLists
 	margin-top: -3px;
 }
 
-#backstageShow svg {
-	left: 4px;
+#backstageShow .svgIcon {
+	left: 5px;
 	position: relative;
 	top: -3px;
 }
@@ -61,10 +72,11 @@ body #backstageArea {
 }
 
 #backstageToolbar {
-	margin-right: 10px;
 	position: relative;
-	margin-bottom: 10px;
-	margin-left: 10px;
+}
+
+#backstageArea {
+	padding: 0px;
 }
 
 #backstageArea a {
@@ -73,7 +85,7 @@ body #backstageArea {
 	background: none;
 }
 
-#backstageArea a: hover {
+#backstageArea a:hover {
 	color: black;
 	background-color: white;
 }
@@ -101,11 +113,9 @@ body #backstageArea {
 
 #backstageToolbar a {
 	position: relative;
-	margin: 3px auto;
 }
 
 #backstageToolbar .task_space {
-	margin-top: 3px;
 	float: left;
 }
 
@@ -115,14 +125,12 @@ body #backstageArea {
 	right: 30px;
 }
 
-#backstageToolbar .task_user img,
 #backstageToolbar .task_login img {
 	float: right;
 	display: block;
 }
 
-#backstageToolbar .task_space svg,
-#backstageToolbar .task_space span {
+#backstageToolbar .task_space .svgIcon {
 	float: left;
 	z-index: 2;
 }
@@ -130,8 +138,12 @@ body #backstageArea {
 #backstageToolbar a span {
 	display: block;
 	height: 25px;
-	float: right;
+	float: left;
 	z-index: 2;
+}
+
+#backstageToolbar .spaceSiteIcon {
+	float: left;
 }
 
 a.backstageTask {
@@ -146,7 +158,7 @@ a.backstageTask {
 }
 
 #backstage {
-	top: -8px;
+	top: -1px;
 }
 
 .textRight {
@@ -160,7 +172,7 @@ a.backstageTask {
 	font-size: 1.6em;
 }
 
-#backstage .deleteButton: hover {
+#backstage .deleteButton:hover {
 	background: none;
 }
 

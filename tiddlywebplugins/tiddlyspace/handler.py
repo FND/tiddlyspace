@@ -190,7 +190,8 @@ def serve_space(environ, start_response, http_host):
     """
     space_name = _determine_space(environ, http_host)
     recipe_name = _determine_space_recipe(environ, space_name)
-    environ['wsgiorg.routing_args'][1]['recipe_name'] = recipe_name
+    environ['wsgiorg.routing_args'][1]['recipe_name'] = recipe_name.encode(
+            'UTF-8')
     _, mime_type = get_serialize_type(environ)
     if 'text/html' in mime_type:
         environ['tiddlyweb.type'] = 'text/x-tiddlywiki'
@@ -243,6 +244,16 @@ def _determine_space(environ, http_host):
     server_host = environ['tiddlyweb.config']['server_host']['host']
     if '.%s' % server_host in http_host:
         return http_host.rsplit('.', server_host.count('.') + 1)[0]
+    else:
+        if ':' in http_host:
+            http_host = http_host.split(':', 1)[0]
+        store = environ['tiddlyweb.store']
+        tiddler = Tiddler(http_host, 'MAPSPACE')
+        try:
+            tiddler = store.get(tiddler)
+            return tiddler.fields['mapped_space']
+        except (KeyError, NoBagError, NoTiddlerError), exc:
+            pass
     return None
 
 
@@ -326,6 +337,7 @@ class ControlView(object):
             template = control.recipe_template(environ)
             bags = [bag for bag, _ in recipe.get_recipe(template)]
             bags.insert(0, "MAPUSER")
+            bags.insert(0, "MAPSPACE")
 
             filter_string = None
             if req_uri.startswith('/recipes') and req_uri.count('/') == 1:
