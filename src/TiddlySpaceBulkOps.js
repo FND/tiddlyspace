@@ -161,6 +161,19 @@ var populate = function(container, tiddlers, type) {
 };
 
 var pubHandler = function(ev) {
+	var tid = getTiddler(this);
+	var item = $(this).closest("li");
+	var errback = function(xhr, error, exc) {
+		item.addClass("error"); // XXX: insufficient feedback!?
+	};
+	var callback = function(tiddler, status, xhr) {
+		tiddler.bag.name = tiddler.bag.name.replace(/_private$/, "_public");
+		tiddler.put(function(tiddler, status, xhr) {
+			var el = item.closest("ul").siblings("ul");
+			item.clone().hide().appendTo(el).slideDown("slow"); // XXX: can lead to duplicates -- XXX: lacks click handlers
+		}, errback);
+	};
+	tid.get(callback, errback);
 	return false;
 };
 
@@ -168,7 +181,7 @@ var delHandler = function(ev) {
 	var tid = getTiddler(this);
 	var item = $(this).closest("li");
 	var callback = function(data, status, xhr) {
-		item.slideUp(); // XXX: speed?
+		item.slideUp("slow");
 	};
 	var errback = function(xhr, error, exc) {
 		item.addClass("error"); // XXX: insufficient feedback!?
