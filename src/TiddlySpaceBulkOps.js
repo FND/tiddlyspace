@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.2.0|
+|''Version''|0.5.0|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -77,9 +77,13 @@
 //{{{
 (function($) {
 
-if(!$.fn.sortable) {
-	throw "Missing dependency: jQuery UI"; // XXX: TiddlyWiki-specific
-}
+// XXX: requires TiddlyWiki 2.6.1
+//if(!window.tiddlyweb) {
+//	throw "Missing dependency: chrjs"; // XXX: TiddlyWiki-specific
+//}
+//if(!$.fn.sortable) {
+//	throw "Missing dependency: jQuery UI"; // XXX: TiddlyWiki-specific
+//}
 
 config.macros.TiddlySpaceBulkOps = {
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
@@ -98,6 +102,7 @@ store.addNotification(name, refreshStyles);
 var render = function(container, host, bags, types) { // XXX: types argument not very pretty
 	types = types || [];
 	container.data("host", host); // XXX: hacky?
+	var dur = "fast";
 	var sortOpts = {
 		revert: true,
 		dropOnEmpty: true,
@@ -132,7 +137,6 @@ var render = function(container, host, bags, types) { // XXX: types argument not
 };
 
 var populate = function(container, tiddlers, type) {
-	var dur = "fast";
 	container.append($.map(tiddlers, function(tiddler, i) {
 		var link = createTiddlyLink(null, tiddler.title, true, null, null,
 			null, true); // XXX: TiddlyWiki-specific
