@@ -44,8 +44,22 @@
 	cursor: move;
 }
 
+.bulkops li.selected {
+	background-color: #FED22F;
+	opacity: 0.5;
+}
+
 .bulkops li .button {
 	float: right;
+}
+
+.bulkops ul li.error {
+	-tw-comment: excessive specificity due to TiddlyWiki -- NB: does not use ColorPalette;
+	background-color: #F88;
+}
+
+.tiddlyspace {
+	-tw-comment: TiddlySpace-specifics start here
 }
 
 .bulkops .public li {
@@ -57,18 +71,13 @@
 	border-color: #FFCAE9;
 	background-color: #FFEAF9;
 }
-
-.bulkops li.selected {
-	background-color: #FED22F;
-	opacity: 0.5;
-}
 !Code
 ***/
 //{{{
 (function($) {
 
 if(!$.fn.sortable) {
-	throw "Missing dependency: jQuery UI";
+	throw "Missing dependency: jQuery UI"; // XXX: TiddlyWiki-specific
 }
 
 config.macros.TiddlySpaceBulkOps = {
@@ -93,6 +102,7 @@ var errback = function(xhr, error, exc) {
 
 var render = function(container, host, bags, types) { // XXX: types argument not very pretty
 	types = types || [];
+	container.data("host", host); // XXX: hacky?
 	$.each(bags, function(i, bag) {
 		var el = $("<ul />").addClass(types[i] || "").appendTo(container);
 		bag = new tiddlyweb.Bag(bag, host);
@@ -136,9 +146,12 @@ var populate = function(container, tiddlers, type) {
 			});
 
 			var btn = $('<a href="javascript:" class="button" />');
-			var delBtn = btn.clone().text("del").attr("title", "delete tiddler"); // TODO: i18n
-			var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"); // TODO: i18n
-			return $("<li />").append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
+			var delBtn = btn.clone().text("del").attr("title", "delete tiddler"). // TODO: i18n
+				click(delHandler);
+			var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"). // TODO: i18n
+				click(pubHandler); // XXX: does only belong on private bag
+			return $('<li />').append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
+				data("tiddler", tiddler).
 				click(function(ev) { // XXX: use live?!
 					var el = $(this);
 					if(!el.hasClass("ui-sortable-helper")) {
@@ -146,6 +159,27 @@ var populate = function(container, tiddlers, type) {
 					}
 				})[0];
 		}));
+};
+
+var pubHandler = function(ev) {
+	return false;
+};
+
+var delHandler = function(ev) {
+	var el = $(this);
+	var host = el.closest(".bulkops").data("host");
+	var item = el.closest("li");
+	var tiddler = item.data("tiddler");
+	var tid = new tiddlyweb.Tiddler(tiddler.title);
+	tid.bag = new tiddlyweb.Bag(tiddler.bag, host);
+	var callback = function(data, status, xhr) {
+		item.slideUp();
+	};
+	var errback = function(xhr, error, exc) {
+		item.addClass("error"); // XXX: insufficient feedback!?
+	};
+	tid.delete(callback, errback);
+	return false;
 };
 
 })(jQuery);
