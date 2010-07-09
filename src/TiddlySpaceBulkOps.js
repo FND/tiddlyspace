@@ -136,7 +136,7 @@ var populate = function(container, tiddlers, type) {
 	container.append($.map(tiddlers, function(tiddler, i) {
 		var link = createTiddlyLink(null, tiddler.title, true, null, null,
 			null, true); // XXX: TiddlyWiki-specific
-		// prevent event bubbling, avoiding selection -- XXX: TiddlyWiki-specific
+		// prevent event propagation, avoiding selection -- XXX: TiddlyWiki-specific
 		var _handler = link.onclick;
 		link.onclick = null;
 		$(link).click(function(ev) {
@@ -165,12 +165,8 @@ var pubHandler = function(ev) {
 };
 
 var delHandler = function(ev) {
-	var el = $(this);
-	var host = el.closest(".bulkops").data("host");
-	var item = el.closest("li");
-	var tiddler = item.data("tiddler");
-	var tid = new tiddlyweb.Tiddler(tiddler.title);
-	tid.bag = new tiddlyweb.Bag(tiddler.bag, host);
+	var tid = getTiddler(this);
+	var item = $(this).closest("li");
 	var callback = function(data, status, xhr) {
 		item.slideUp(); // XXX: speed?
 	};
@@ -179,6 +175,15 @@ var delHandler = function(ev) {
 	};
 	tid["delete"](callback, errback);
 	return false;
+};
+
+var getTiddler = function(btn) {
+	btn = $(btn);
+	var host = btn.closest(".bulkops").data("host");
+	var tiddler = btn.closest("li").data("tiddler");
+	var tid = new tiddlyweb.Tiddler(tiddler.title);
+	tid.bag = new tiddlyweb.Bag(tiddler.bag, host);
+	return tid;
 };
 
 })(jQuery);
