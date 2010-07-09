@@ -98,12 +98,33 @@ store.addNotification(name, refreshStyles);
 var render = function(container, host, bags, types) { // XXX: types argument not very pretty
 	types = types || [];
 	container.data("host", host); // XXX: hacky?
+	var sortOpts = {
+		revert: true,
+		dropOnEmpty: true,
+		connectWith: ".bulkops ul",
+		start: function(ev, ui) {
+			ui.item.addClass("selected");
+		},
+		receive: function(ev, ui) {
+			ui.item.removeClass("selected");
+			$(".bulkops li.selected").not(ui.item).slideUp(dur, function() {
+				$(this).insertAfter(ui.item).slideDown(dur, function() {
+					$(this).removeClass("selected");
+				});
+			});
+		},
+		remove: function(ev, ui) {
+			// TODO
+		}
+	};
 	$.each(bags, function(i, bag) {
-		var el = $("<ul />").addClass(types[i] || "").appendTo(container);
+		var el = $("<ul />").addClass(types[i] || "").sortable(sortOpts).
+			appendTo(container);
 		bag = new tiddlyweb.Bag(bag, host);
 		bag.tiddlers().get(function(data, status, xhr) {
 			populate(el, data, types[i]);
 		}, function(xhr, error, exc) {
+			el.sortable("disable");
 			$('<li class="error" />').text("failed to load bag " + bag.name). // TODO: i18n
 				appendTo(el); // XXX: use el.replaceWith("<p />") instead of LI?
 		});
@@ -112,51 +133,31 @@ var render = function(container, host, bags, types) { // XXX: types argument not
 
 var populate = function(container, tiddlers, type) {
 	var dur = "fast";
-	container.
-		sortable({
-			revert: true,
-			dropOnEmpty: true,
-			connectWith: ".bulkops ul",
-			start: function(ev, ui) {
-				ui.item.addClass("selected");
-			},
-			receive: function(ev, ui) {
-				ui.item.removeClass("selected");
-				$(".bulkops li.selected").not(ui.item).slideUp(dur, function() {
-					$(this).insertAfter(ui.item).slideDown(dur, function() {
-						$(this).removeClass("selected");
-					});
-				});
-			},
-			remove: function(ev, ui) {
-				// TODO
-			}
-		}).
-		append($.map(tiddlers, function(tiddler, i) {
-			var link = createTiddlyLink(null, tiddler.title, true, null, null,
-				null, true); // XXX: TiddlyWiki-specific
-			// prevent event bubbling, avoiding selection -- XXX: TiddlyWiki-specific
-			var _handler = link.onclick;
-			link.onclick = null;
-			$(link).click(function(ev) {
-				_handler(ev.originalEvent);
-				return false;
-			});
+	container.append($.map(tiddlers, function(tiddler, i) {
+		var link = createTiddlyLink(null, tiddler.title, true, null, null,
+			null, true); // XXX: TiddlyWiki-specific
+		// prevent event bubbling, avoiding selection -- XXX: TiddlyWiki-specific
+		var _handler = link.onclick;
+		link.onclick = null;
+		$(link).click(function(ev) {
+			_handler(ev.originalEvent);
+			return false;
+		});
 
-			var btn = $('<a href="javascript:" class="button" />');
-			var delBtn = btn.clone().text("del").attr("title", "delete tiddler"). // TODO: i18n
-				click(delHandler);
-			var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"). // TODO: i18n
-				click(pubHandler); // XXX: does only belong on private bag
-			return $('<li />').append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
-				data("tiddler", tiddler).
-				click(function(ev) { // XXX: use live?!
-					var el = $(this);
-					if(!el.hasClass("ui-sortable-helper")) {
-						el.toggleClass("selected");
-					}
-				})[0];
-		}));
+		var btn = $('<a href="javascript:" class="button" />');
+		var delBtn = btn.clone().text("del").attr("title", "delete tiddler"). // TODO: i18n
+			click(delHandler);
+		var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"). // TODO: i18n
+			click(pubHandler); // XXX: does only belong on private bag
+		return $('<li />').append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
+			data("tiddler", tiddler).
+			click(function(ev) { // XXX: use live?!
+				var el = $(this);
+				if(!el.hasClass("ui-sortable-helper")) {
+					el.toggleClass("selected");
+				}
+			})[0];
+	}));
 };
 
 var pubHandler = function(ev) {
@@ -171,7 +172,7 @@ var delHandler = function(ev) {
 	var tid = new tiddlyweb.Tiddler(tiddler.title);
 	tid.bag = new tiddlyweb.Bag(tiddler.bag, host);
 	var callback = function(data, status, xhr) {
-		item.slideUp();
+		item.slideUp(); // XXX: speed?
 	};
 	var errback = function(xhr, error, exc) {
 		item.addClass("error"); // XXX: insufficient feedback!?
