@@ -127,6 +127,14 @@ var populate = function(container, tiddlers, type) {
 		append($.map(tiddlers, function(tiddler, i) {
 			var link = createTiddlyLink(null, tiddler.title, true, null, null,
 				null, true); // XXX: TiddlyWiki-specific
+			// prevent event bubbling, avoiding selection -- XXX: TiddlyWiki-specific
+			var _handler = link.onclick;
+			link.onclick = null;
+			$(link).click(function(ev) {
+				_handler(ev.originalEvent);
+				return false;
+			});
+
 			var btn = $('<a href="javascript:" class="button" />');
 			var delBtn = btn.clone().text("del").attr("title", "delete tiddler"); // TODO: i18n
 			var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"); // TODO: i18n
