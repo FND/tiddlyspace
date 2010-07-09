@@ -183,14 +183,16 @@ var pubHandler = function(ev) {
 
 var delHandler = function(ev) {
 	var tid = getTiddler(this);
-	var item = $(this).closest("li");
-	var callback = function(data, status, xhr) {
-		item.slideUp("slow");
-	};
-	var errback = function(xhr, error, exc) {
-		item.addClass("error"); // XXX: insufficient feedback!?
-	};
-	tid["delete"](callback, errback);
+	if(confirm("delete tiddler " + tid.title)) { // TODO: i18n -- TODO: s/confirm/UI/
+		var item = $(this).closest("li");
+		var callback = function(data, status, xhr) {
+			item.slideUp("slow");
+		};
+		var errback = function(xhr, error, exc) {
+			item.addClass("error"); // XXX: insufficient feedback!?
+		};
+		tid["delete"](callback, errback);
+	}
 	return false;
 };
 
