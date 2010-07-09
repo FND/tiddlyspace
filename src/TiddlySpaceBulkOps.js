@@ -176,7 +176,7 @@ var delHandler = function(ev) {
 	var errback = function(xhr, error, exc) {
 		item.addClass("error"); // XXX: insufficient feedback!?
 	};
-	tid.delete(callback, errback);
+	tid["delete"](callback, errback);
 	return false;
 };
 
