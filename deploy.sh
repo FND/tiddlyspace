@@ -14,10 +14,8 @@ host=${4-http://tiddlyspace.com}
 recipe="${space}_public"
 options="-X PUT -u $username:$password"
 
-title=TiddlySpaceBulkOps
-ctype=text/javascript
-#curl $options -H "Content-Type: text/$ctype" --data-binary @src/$title.js \
-{ echo "type: $ctype"; echo "tags: systemConfig"; echo; } | \
-	cat - src/$title.js | \
+title="TiddlySpaceBulkOps"
+ctype="text/javascript"
+{ echo "type: $ctype"; echo "tags: systemConfig"; echo; cat "src/$title.js"; } | \
 	curl $options -H "Content-Type: text/plain" --data-binary @- \
 		"$host/recipes/$recipe/tiddlers/$title"
