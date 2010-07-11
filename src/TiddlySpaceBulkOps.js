@@ -12,6 +12,7 @@
 !StyleSheet
 .bulkops {
 	overflow: auto;
+	padding-top: 2em;
 }
 
 .bulkops * {
@@ -25,9 +26,18 @@
 	padding: 1px 0 0;
 }
 
+.bulkops h3,
 .bulkops ul {
 	float: left;
 	width: 40%;
+}
+
+.bulkops h3 {
+	-tw-comment: separate from subsequent UL flow;
+	margin-top: -1.5em;
+}
+
+.bulkops ul {
 	min-height: 1em;
 	margin: 1em;
 	padding-top: 1px;
@@ -123,6 +133,7 @@ var render = function(container, host, bags, types) { // XXX: types argument not
 		}
 	};
 	$.each(bags, function(i, bag) {
+		$("<h3 />").text(bag).appendTo(container); // TODO: support custom labels
 		var el = $("<ul />").addClass(types[i] || "").sortable(sortOpts).
 			appendTo(container);
 		bag = new tiddlyweb.Bag(bag, host);
