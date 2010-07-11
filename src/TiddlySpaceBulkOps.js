@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.5.0|
+|''Version''|0.6.0|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -23,6 +23,7 @@
 
 .viewer .bulkops ul {
 	-tw-comment: duplication due to TiddlyWiki specificity;
+	margin: 0 2em 0 0;
 	padding: 1px 0 0;
 }
 
@@ -39,7 +40,7 @@
 
 .bulkops ul {
 	min-height: 1em;
-	margin: 1em;
+	margin-right: 2em;
 	padding-top: 1px;
 	list-style-type: none;
 	background-color: #FFFEE6;
@@ -104,7 +105,7 @@ config.macros.TiddlySpaceBulkOps = {
 				label: tiddlyweb._capitalize(item),
 				bag: space + "_" + item,
 				type: item
-			}
+			};
 		});
 		render(cols, container, config.extensions.tiddlyweb.host);
 	}
@@ -169,7 +170,7 @@ var populate = function(container, tiddlers) {
 			click(delHandler);
 		var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"). // TODO: i18n
 			click(pubHandler); // XXX: does only belong on private bag
-		return $('<li />').append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
+		return $("<li />").append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
 			data("tiddler", tiddler).
 			click(function(ev) { // XXX: use live?!
 				var el = $(this);
