@@ -96,18 +96,58 @@
 //	throw "Missing dependency: jQuery UI"; // XXX: TiddlyWiki-specific
 //}
 
-config.macros.TiddlySpaceBulkOps = {
+var macro = config.macros.TiddlySpaceBulkOps = {
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
 		var container = $("<div />").addClass("bulkops").appendTo(place);
 		var space = config.extensions.tiddlyspace.currentSpace.name;
 		var cols = $.map(["private", "public"], function(item, i) {
 			return {
-				label: tiddlyweb._capitalize(item),
 				bag: space + "_" + item,
-				type: item
+				type: item,
+				label: tiddlyweb._capitalize(item),
+				pproc: macro.augmentItem // XXX: rename property?
 			};
 		});
+		cols[0].pproc = function(el) { // XXX: hacky
+			macro.augmentItem(el);
+			el.children(":last").clone(false). // XXX: hacky
+				text("pub").attr("title", "publish tiddler"). // TODO: i18n
+				click(macro.onPub).
+				appendTo(el);
+		};
 		render(cols, container, config.extensions.tiddlyweb.host);
+	},
+	augmentItem: function(el) {
+		var title = el.data("tiddler").title;
+		var link = createTiddlyLink(el[0], title, true, null, null, null, true);
+		// prevent event propagation, avoiding selection -- XXX: hacky!?
+		var _handler = link.onclick;
+		link.onclick = null;
+		$(link).click(function(ev) {
+			_handler(ev.originalEvent);
+			return false;
+		});
+
+		$('<a href="javascript:" class="button" />').
+			text("del").attr("title", "delete tiddler"). // TODO: i18n
+			click(delHandler). // XXX: use live!?
+			appendTo(el);
+	},
+	onPub: function(ev) { // TODO: reuse publishTiddlerRevision's publishTiddler
+		var tid = getTiddler(this);
+		var item = $(this).closest("li");
+		var errback = function(xhr, error, exc) {
+			item.addClass("error"); // XXX: insufficient feedback!?
+		};
+		var callback = function(tiddler, status, xhr) {
+			tiddler.bag.name = tiddler.bag.name.replace(/_private$/, "_public");
+			tiddler.put(function(tiddler, status, xhr) {
+				var el = item.closest("ul").siblings("ul");
+				item.clone().hide().appendTo(el).slideDown("slow"); // XXX: can lead to duplicates -- XXX: lacks click handlers
+			}, errback);
+		};
+		tid.get(callback, errback);
+		return false;
 	}
 };
 
@@ -150,7 +190,7 @@ var render = function(cols, container, host) {
 		});
 		bag = new tiddlyweb.Bag(col.bag, host);
 		bag.tiddlers().get(function(data, status, xhr) {
-			populate(el, data);
+			populate(el, data, col.pproc);
 		}, function(xhr, error, exc) {
 			el.sortable("disable");
 			$('<li class="error" />').text("failed to load bag " + bag.name). // TODO: i18n
@@ -159,43 +199,12 @@ var render = function(cols, container, host) {
 	});
 };
 
-var populate = function(container, tiddlers) {
+var populate = function(container, tiddlers, pproc) {
 	container.append($.map(tiddlers, function(tiddler, i) {
-		var link = createTiddlyLink(null, tiddler.title, true, null, null,
-			null, true); // XXX: TiddlyWiki-specific
-		// prevent event propagation, avoiding selection -- XXX: TiddlyWiki-specific
-		var _handler = link.onclick;
-		link.onclick = null;
-		$(link).click(function(ev) {
-			_handler(ev.originalEvent);
-			return false;
-		});
-
-		var btn = $('<a href="javascript:" class="button" />');
-		var delBtn = btn.clone().text("del").attr("title", "delete tiddler"). // TODO: i18n
-			click(delHandler);
-		var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"). // TODO: i18n
-			click(pubHandler); // XXX: does only belong on private bag
-		return $("<li />").append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
-			data("tiddler", tiddler)[0];
+		var el = $("<li />").data("tiddler", tiddler);
+		pproc(el);
+		return el[0];
 	}));
-};
-
-var pubHandler = function(ev) {
-	var tid = getTiddler(this);
-	var item = $(this).closest("li");
-	var errback = function(xhr, error, exc) {
-		item.addClass("error"); // XXX: insufficient feedback!?
-	};
-	var callback = function(tiddler, status, xhr) {
-		tiddler.bag.name = tiddler.bag.name.replace(/_private$/, "_public");
-		tiddler.put(function(tiddler, status, xhr) {
-			var el = item.closest("ul").siblings("ul");
-			item.clone().hide().appendTo(el).slideDown("slow"); // XXX: can lead to duplicates -- XXX: lacks click handlers
-		}, errback);
-	};
-	tid.get(callback, errback);
-	return false;
 };
 
 var delHandler = function(ev) {
