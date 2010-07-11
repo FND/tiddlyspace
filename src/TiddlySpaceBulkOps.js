@@ -99,9 +99,14 @@ config.macros.TiddlySpaceBulkOps = {
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
 		var container = $("<div />").addClass("bulkops").appendTo(place);
 		var space = config.extensions.tiddlyspace.currentSpace.name;
-		var bags = [space + "_private", space + "_public"];
-		var types = ["private", "public"];
-		render(container, config.extensions.tiddlyweb.host, bags, types);
+		var cols = $.map(["private", "public"], function(item, i) {
+			return {
+				label: tiddlyweb._capitalize(item),
+				bag: space + "_" + item,
+				type: item
+			}
+		});
+		render(cols, container, config.extensions.tiddlyweb.host);
 	}
 };
 
@@ -109,8 +114,7 @@ var name = "StyleSheetBulkOps";
 config.shadowTiddlers[name] = store.getTiddlerText(tiddler.title + "##StyleSheet");
 store.addNotification(name, refreshStyles);
 
-var render = function(container, host, bags, types) { // XXX: types argument not very pretty
-	types = types || [];
+var render = function(cols, container, host) {
 	container.data("host", host); // XXX: hacky?
 	var dur = "fast";
 	var sortOpts = {
@@ -132,13 +136,14 @@ var render = function(container, host, bags, types) { // XXX: types argument not
 			// TODO
 		}
 	};
-	$.each(bags, function(i, bag) {
-		$("<h3 />").text(bag).appendTo(container); // TODO: support custom labels
-		var el = $("<ul />").addClass(types[i] || "").sortable(sortOpts).
+	$.each(cols, function(i, col) {
+		var label = col.label || col.bag;
+		$("<h3 />").text(label).appendTo(container);
+		var el = $("<ul />").addClass(col.type || "").sortable(sortOpts).
 			appendTo(container);
-		bag = new tiddlyweb.Bag(bag, host);
+		bag = new tiddlyweb.Bag(col.bag, host);
 		bag.tiddlers().get(function(data, status, xhr) {
-			populate(el, data, types[i]);
+			populate(el, data);
 		}, function(xhr, error, exc) {
 			el.sortable("disable");
 			$('<li class="error" />').text("failed to load bag " + bag.name). // TODO: i18n
@@ -147,7 +152,7 @@ var render = function(container, host, bags, types) { // XXX: types argument not
 	});
 };
 
-var populate = function(container, tiddlers, type) {
+var populate = function(container, tiddlers) {
 	container.append($.map(tiddlers, function(tiddler, i) {
 		var link = createTiddlyLink(null, tiddler.title, true, null, null,
 			null, true); // XXX: TiddlyWiki-specific
