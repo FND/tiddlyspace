@@ -142,6 +142,12 @@ var render = function(cols, container, host) {
 		$("<h3 />").text(label).appendTo(container);
 		var el = $("<ul />").addClass(col.type || "").sortable(sortOpts).
 			appendTo(container);
+		$("li", el[0]).live("click", function(ev) {
+			var el = $(this);
+			if(!el.hasClass("ui-sortable-helper")) {
+				el.toggleClass("selected");
+			}
+		});
 		bag = new tiddlyweb.Bag(col.bag, host);
 		bag.tiddlers().get(function(data, status, xhr) {
 			populate(el, data);
@@ -171,13 +177,7 @@ var populate = function(container, tiddlers) {
 		var pubBtn = btn.clone().text("pub").attr("title", "publish tiddler"). // TODO: i18n
 			click(pubHandler); // XXX: does only belong on private bag
 		return $("<li />").append(link).append(delBtn).append(pubBtn). // TODO: use templating!?
-			data("tiddler", tiddler).
-			click(function(ev) { // XXX: use live?!
-				var el = $(this);
-				if(!el.hasClass("ui-sortable-helper")) {
-					el.toggleClass("selected");
-				}
-			})[0];
+			data("tiddler", tiddler)[0];
 	}));
 };
 
