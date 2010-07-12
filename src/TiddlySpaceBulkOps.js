@@ -134,8 +134,8 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 			appendTo(el);
 	},
 	onPub: function(ev) { // TODO: reuse publishTiddlerRevision's publishTiddler
-		var tid = getTiddler(this);
 		var item = $(this).closest("li");
+		var tid = item.data("tiddler");
 		var errback = function(xhr, error, exc) {
 			item.addClass("error"); // XXX: insufficient feedback!?
 		};
@@ -156,7 +156,6 @@ config.shadowTiddlers[name] = store.getTiddlerText(tiddler.title + "##StyleSheet
 store.addNotification(name, refreshStyles);
 
 var render = function(cols, container, host) {
-	container.data("host", host); // XXX: hacky?
 	var dur = "fast";
 	var sortOpts = {
 		revert: true,
@@ -208,9 +207,9 @@ var populate = function(container, tiddlers, pproc) {
 };
 
 var delHandler = function(ev) {
-	var tid = getTiddler(this);
+	var item = $(this).closest("li");
+	var tid = item.data("tiddler");
 	if(confirm("delete tiddler " + tid.title)) { // TODO: i18n -- TODO: s/confirm/UI/
-		var item = $(this).closest("li");
 		var callback = function(data, status, xhr) {
 			item.slideUp("slow");
 		};
@@ -220,15 +219,6 @@ var delHandler = function(ev) {
 		tid["delete"](callback, errback);
 	}
 	return false;
-};
-
-var getTiddler = function(btn) {
-	btn = $(btn);
-	var host = btn.closest(".bulkops").data("host");
-	var tiddler = btn.closest("li").data("tiddler");
-	var tid = new tiddlyweb.Tiddler(tiddler.title);
-	tid.bag = new tiddlyweb.Bag(tiddler.bag, host);
-	return tid;
 };
 
 })(jQuery);
