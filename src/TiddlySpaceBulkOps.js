@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.6.0|
+|''Version''|0.7.0|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -171,6 +171,15 @@ var render = function(cols, container, host) {
 					$(this).removeClass("selected");
 				});
 			});
+
+			var bag = $(this).data("bag");
+			var tiddler = ui.item.data("tiddler");
+
+			moveTiddler(tiddler, bag, function(data, status, xhr) {
+				ui.item.effect("highlight", "slow"); // XXX: confusing feedback!?
+			}, function(xhr, error, exc) {
+				ui.item.addClass("error"); // XXX: insufficient feedback!?
+			});
 		},
 		remove: function(ev, ui) {
 			// TODO
@@ -180,6 +189,7 @@ var render = function(cols, container, host) {
 		var label = col.label || col.bag;
 		$("<h3 />").text(label).appendTo(container);
 		var el = $("<ul />").addClass(col.type || "").sortable(sortOpts).
+			data("bag", col.bag).
 			appendTo(container);
 		$("li", el[0]).live("click", function(ev) {
 			var el = $(this);
@@ -219,6 +229,50 @@ var delHandler = function(ev) {
 		tid["delete"](callback, errback);
 	}
 	return false;
+};
+
+var moveTiddler = function(tiddler, bag, callback, errback) {
+	var putCallback = function(data, status, xhr) {
+		tiddler["delete"](callback, errback);
+	};
+	var getCallback = function(revisions, status, xhr) {
+		var revs = [];
+		var exclude = ["title", "bag", "recipe", "permissions"];
+		$.each(revisions, function(i, rev) {
+			var clone = {};
+			$.each(rev, function(key, value) {
+				if(!$.isFunction(value) && $.inArray(key, exclude) == -1) {
+					clone[key] = value;
+				}
+			});
+			// retain previous location
+			if(!clone.fields.origin) {
+				clone.fields.origin = ["bags", rev.bag, rev.title].join("/");
+			}
+			revs.push(clone);
+		});
+		// add new revision
+		var rev = $.extend({}, revs[0]);
+		$.extend(rev.fields, revs[0].fields);
+		rev.revision++;
+		revs.unshift(rev);
+		// calculate URI
+		var clone = $.extend({}, tiddler);
+		clone.bag = $.extend({}, tiddler.bag, { name: bag });
+		return $.ajax({ // TODO: fold into chrjs?
+			url: clone.revisions().route(),
+			type: "POST",
+			contentType: "application/json",
+			data: $.toJSON(revs),
+			beforeSend: function(xhr) {
+				var etag = [clone.bag.name, tiddler.title, 0].join("/");
+				xhr.setRequestHeader("If-Match", '"' + etag + '"');
+			},
+			success: putCallback,
+			error: errback
+		});
+	};
+	tiddler.revisions().get(getCallback, errback, "fat=1");
 };
 
 })(jQuery);
