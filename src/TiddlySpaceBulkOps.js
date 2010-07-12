@@ -48,8 +48,8 @@
 
 .bulkops li {
 	overflow: auto;
-	border: 1px solid #AAA;
 	margin-top: -1px;
+	border: 1px solid #AAA;
 	text-align: center;
 	background-color: #EEE;
 	cursor: move;
@@ -247,7 +247,7 @@ var moveTiddler = function(tiddler, bag, callback, errback) {
 			});
 			// retain previous location
 			if(!clone.fields.origin) {
-				clone.fields.origin = ["bags", rev.bag, rev.title].join("/");
+				clone.fields.origin = ["bags", rev.bag.name, rev.title].join("/");
 			}
 			revs.push(clone);
 		});
