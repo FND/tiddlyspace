@@ -9,8 +9,6 @@
 |''License''|[[BSD|http://www.opensource.org/licenses/bsd-license.php]]|
 |''CoreVersion''|2.5.0|
 |''Requires''|chrjs|
-!DEBUG
-<<TiddlySpaceActivities>>
 !StyleSheet
 .stream li {
 	margin-top: -1px;
@@ -33,19 +31,25 @@
 //	throw "Missing dependency: chrjs";
 //}
 
-// XXX: DEBUG
-//url: '%0/search.json?q=ftitle:"%1" %2'.format([host, escape(title), bagQuery])
-//http://tiddlyspace.com/search?q=modifier:cdent;sort=-modified;limit=10
-
 var macro = config.macros.TiddlySpaceActivities = {
+	source: "followees", // TODO: rename -- XXX: use macro parameter?
 	interval: 10000, // XXX: ?
+	imax: 20, // TODO: rename
+	max: 10, // TODO: rename
 	containerClass: "stream", // TODO: rename
 	newItemClass: "new",
 
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
-		var iid;
-		var query = "SecondaryLight"; // XXX: DEBUG
+		var users = store.getTiddlerText(this.source);
+		if(!users) {
+			return false; // XXX: insufficient feedback
+		}
+		users = users.readBracketedList();
+		var query = "q=(modifier:%0);sort=-modified;limit=%1".
+			format([users.join(" OR modifier:"), this.imax]);
+
 		var el = $("<ul />").addClass(this.containerClass).appendTo(place);
+		var iid;
 		var poll = function() {
 			if(el.filter(":visible").length == 0) {
 				clearInterval(iid); // XXX: deactivate permanently?
@@ -58,16 +62,10 @@ var macro = config.macros.TiddlySpaceActivities = {
 			});
 		};
 		poll();
+		query = query.replace(";limit=" + this.imax, ";limit=" + this.max);
 		iid = setInterval(poll, this.interval);
 	},
 	refresh: function(el, tids) {
-		// XXX: DEBUG
-		tids = tids.concat(tids).concat(tids).concat(tids).concat(tids);
-		if(!this.flag) {
-			this.flag = true;
-			tids = tids.concat(tids);
-		}
-
 		$("li", el).removeClass(this.newItemClass);
 		el.children().slice(-tids.length).slideUp("slow", function() {
 			$(this).remove();
@@ -82,14 +80,22 @@ var macro = config.macros.TiddlySpaceActivities = {
 	},
 	getItems: function(query, callback, errback) {
 		var search = new tiddlyweb.Collection("search", config.extensions.tiddlyweb.host);
-		search.query = query;
+
+		// XXX: temporary workaround; chrjs 0.9 mistakenly encodes filter string
+		tiddlyweb.routes.search = "{host}/search";
+		var _route = search.route;
+		search.route = function() {
+			return _route.apply(this, arguments).
+				replace(/%3B/g, ";").replace(/%3D/g, "=");
+		};
+
 		search.get(function(data, status, xhr) {
 			// XXX: hacky; required because TiddlerCollection is not exposed and expects container
 			var parseCollection = tiddlyweb.Bag.prototype.tiddlers().parse;
 			var collection = { container: { host: search.host } };
 			var tids = parseCollection.apply(collection, [data]);
 			callback(tids);
-		}, errback);
+		}, errback, query);
 	}
 };
 
