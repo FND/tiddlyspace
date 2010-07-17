@@ -21,12 +21,6 @@
 	padding: 0;
 }
 
-.viewer .bulkops ul {
-	-tw-comment: duplication due to TiddlyWiki specificity;
-	margin: 0 2em 0 0;
-	padding: 1px 0 0;
-}
-
 .bulkops h3,
 .bulkops ul {
 	float: left;
@@ -69,9 +63,10 @@
 	border-color: #E77;
 	background-color: #F88;
 }
-
-.tiddlyspace {
-	-tw-comment: TiddlySpace-specifics start here
+!StyleSheetTW
+.viewer .bulkops ul {
+	margin: 0 2em 0 0;
+	padding: 1px 0 0;
 }
 
 .bulkops .public li {
@@ -152,7 +147,9 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 };
 
 var name = "StyleSheetBulkOps";
-config.shadowTiddlers[name] = store.getTiddlerText(tiddler.title + "##StyleSheet");
+config.shadowTiddlers[name] = "%0\n%1".format([
+	store.getTiddlerText(tiddler.title + "##StyleSheet"),
+	store.getTiddlerText(tiddler.title + "##StyleSheetTW")]);
 store.addNotification(name, refreshStyles);
 
 var render = function(cols, container, host) {
