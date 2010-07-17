@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.7.0|
+|''Version''|0.8.0|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -111,6 +111,10 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 				appendTo(el);
 		};
 		render(cols, container, config.extensions.tiddlyweb.host);
+		$('<a href="javascript:" class="button" />').
+			text("filter").attr("title", "display only shared tiddlers"). // TODO: i18n
+			click(this.onFilter).
+			prependTo(container);
 	},
 	augmentItem: function(el) {
 		var title = el.data("tiddler").title;
@@ -127,6 +131,41 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 			text("del").attr("title", "delete tiddler"). // TODO: i18n
 			click(delHandler). // XXX: use live!?
 			appendTo(el);
+	},
+	onFilter: function(ev) {
+		var btn = $(this);
+		if(btn.data("active")) {
+			$("li.hidden", container).removeClass("hidden").slideDown("slow");
+			btn.data("active", false);
+			return false;
+		}
+		btn.data("active", true);
+		var container = btn.closest(".bulkops");
+		var shared = [];
+		var candidates = [];
+		$("ul", container).each(function(i, item) {
+			$(item).find("li").each(function(j, item) {
+				item = $(item);
+				var tid = item.data("tiddler");
+				if(i == 0) {
+					candidates.push(tid.title);
+				} else {
+					if($.inArray(tid.title, candidates) != -1) {
+						shared.push(tid.title);
+					} else {
+						item.addClass("hidden").slideUp("slow");
+					}
+				}
+			});
+		});
+		$("ul:first li", container).each(function(i, item) {
+			item = $(item);
+			var tid = item.data("tiddler");
+			if($.inArray(tid.title, shared) == -1) {
+				item.addClass("hidden").slideUp("slow");
+			}
+		});
+		return false;
 	},
 	onPub: function(ev) { // TODO: reuse publishTiddlerRevision's publishTiddler
 		var item = $(this).closest("li");
