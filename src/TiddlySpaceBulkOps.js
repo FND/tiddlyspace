@@ -206,6 +206,11 @@ var render = function(cols, container, host) {
 };
 
 var populate = function(container, tiddlers, pproc) {
+	tiddlers = tiddlers.sort(function(a, b) {
+		var x = a.title;
+		var y = b.title;
+		return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+	});
 	container.append($.map(tiddlers, function(tiddler, i) {
 		var el = $("<li />").data("tiddler", tiddler);
 		pproc(el);
