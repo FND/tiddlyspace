@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.8.1|
+|''Version''|0.8.2|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -49,8 +49,8 @@
 	cursor: move;
 }
 
+.bulkops ul li.outdated,
 .bulkops li.selected {
-	background-color: #FED22F;
 	opacity: 0.5;
 }
 
@@ -58,6 +58,10 @@
 	-tw-comment: excessive specificity due to TiddlyWiki -- NB: does not use ColorPalette;
 	border-color: #E77;
 	background-color: #F88;
+}
+
+.bulkops li.selected {
+	background-color: #FED22F;
 }
 
 .bulkops .button.active {
@@ -148,6 +152,7 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 		var container = btn.closest(".bulkops");
 		var shared = [];
 		var candidates = [];
+		var index = {};
 		$("ul", container).each(function(i, item) {
 			$(item).find("li").each(function(j, item) {
 				item = $(item);
@@ -157,6 +162,7 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 				} else {
 					if($.inArray(tid.title, candidates) != -1) {
 						shared.push(tid.title);
+						index[tid.title] = item;
 					} else {
 						item.addClass("hidden").slideUp("slow");
 					}
@@ -168,6 +174,15 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 			var tid = item.data("tiddler");
 			if($.inArray(tid.title, shared) == -1) {
 				item.addClass("hidden").slideUp("slow");
+			} else {
+				var cpart = index[tid.title];
+				var a = tid.modified;
+				var b = cpart.data("tiddler").modified;
+				if(a < b) {
+					item.addClass("outdated");
+				} else if(b < a) {
+					cpart.addClass("outdated");
+				}
 			}
 		});
 		return false;
