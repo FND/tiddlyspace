@@ -1,5 +1,9 @@
 /***
+|''Name''|TiddlySpaceSpaces|
+|''Version''||
+|''Description''||
 |''Requires''|TiddlyWebConfig TiddlySpaceInclusion TiddlySpaceUserControls|
+|''Source''||
 !HTMLForm
 <form action="#">
 	<fieldset>
@@ -84,8 +88,13 @@ var macro = config.macros.TiddlySpaceSpaces = { // TODO: rename
 				config.macros.TiddlySpaceInclusion.include(
 					ns.currentSpace.name, space.name);
 			}
-			macro.refresh(container);
-			displayMessage(macro.locale.addSuccess.format([space.name]));
+			var link = $('<a href="javascript:;" />').text(space.name); // TODO: calculate URL
+			var el = $("ul", container)
+			$("<li />").append(link).hide().appendTo(el).
+				slideDown(function() {
+					$(this).css("display", ""); // required to neutralize animation remnants
+					macro.refresh(container); // XXX: hack to add URL (see above)
+				});
 		};
 		var errback = function(xhr, error, exc) { // TODO: DRY (cf. TiddlySpaceLogin)
 			var ctx = {
@@ -98,7 +107,7 @@ var macro = config.macros.TiddlySpaceSpaces = { // TODO: rename
 		if(ns.isValidSpaceName(space.name)) {
 			space.create(callback, errback);
 		} else {
-			var xhr = { status: 409 }; // XXX: hacky
+			xhr = { status: 409 }; // XXX: hacky
 			var ctx = {
 				msg: { 409: macro.locale.charError },
 				form: form,

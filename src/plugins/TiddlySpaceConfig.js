@@ -1,6 +1,11 @@
 /***
 |''Name''|TiddlySpaceConfig|
+|''Version''||
+|''Description''|Configures Tiddly(Web)Wiki for use with TiddlySpace|
+|''Status''|//unknown//|
+|''Source''|http://github.com/TiddlySpace/tiddlyspace|
 |''Requires''|TiddlyWebConfig|
+!Code
 ***/
 //{{{
 (function($) {
@@ -109,28 +114,10 @@ var plugin = config.extensions.tiddlyspace = {
 ns = config.extensions.tiddlyweb;
 ns.serverPrefix = ns.host.split("/")[3] || ""; // XXX: assumes root handler
 
-config.shadowTiddlers.ToolbarCommands = config.shadowTiddlers.ToolbarCommands.
-	replace("editTiddler ", "editTiddler cloneTiddler ").
-	replace("closeOthers", "").replace("jump", "jump closeOthers").
-	replace("revisions ", "publishTiddlerRevision pubRev revisions ").
-	replace("saveTiddler ", "saveTiddler savePublicTiddler ");
-
-// set global read-only mode depending on space membership
-readOnly = true;
-ns.getUserInfo(function(user) {
-	var callback = function(members, status, xhr) {
-		readOnly = !members.contains(ns.username);
-		var anim = config.options.chkAnimate;
-		config.options.chkAnimate = false;
-		refreshDisplay();
-		config.options.chkAnimate = anim;
-	};
-	var errback = function(xhr, error, exc) {}; // assumes read-only
-	if(!user.anon) {
-		var space = new tiddlyweb.Space(plugin.currentSpace.name, ns.host);
-		space.members().get(callback, errback);
-	}
-});
+// set global read-only mode based on membership heuristics
+var indicator = store.getTiddler("SiteTitle") || tiddler;
+readOnly = !(recipe.split("_").pop() == "private" ||
+	ns.hasPermission("write", indicator));
 
 // ensure backstage is always initialized
 // required to circumvent TiddlyWiki's read-only based handling
@@ -140,8 +127,8 @@ config.macros.backstageInit = {
 	}
 };
 
-// register style sheet
-store.addNotification("StyleSheetTiddlySpace", refreshStyles);
+// register style sheet for backstage separately (important)
+store.addNotification("StyleSheetBackstage", refreshStyles);
 
 })(jQuery);
 //}}}

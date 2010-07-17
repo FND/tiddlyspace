@@ -15,6 +15,7 @@ from tiddlywebplugins.prettyerror.instance import (
          store_contents as prettyerror_store_contents,
          store_structure as prettyerror_store_structure)
 
+
 store_contents.update(get_tiddler_locations(
     prettyerror_store_contents, 'tiddlywebplugins.prettyerror'))
 store_structure['bags'].update(prettyerror_store_structure['bags'])
@@ -23,9 +24,9 @@ store_structure['recipes'].update(prettyerror_store_structure['recipes'])
 instance_config['system_plugins'] = ['tiddlywebplugins.tiddlyspace']
 instance_config['twanager_plugins'] = ['tiddlywebplugins.tiddlyspace']
 
+store_contents['common'] = ['src/common.recipe']
 store_contents['tiddlyspace'] = [
     'src/lib/index.recipe',
-    'src/model/index.recipe',
     'src/backstage/index.recipe',
     'src/shadows/index.recipe',
     'src/styles/index.recipe',
@@ -35,10 +36,14 @@ store_contents['tiddlyspace'] = [
 ]
 store_contents['frontpage_public'] = ['src/frontpage/index.recipe']
 
+store_structure['bags']['common']['policy'] = \
+    store_structure['bags']['system']['policy']
+
 store_structure['bags']['tiddlyspace'] = {
     'desc': 'TiddlySpace client',
     'policy': store_structure['bags']['system']['policy'],
 }
+
 store_structure['recipes']['default']['recipe'].insert(1, ('tiddlyspace', ''))
 
 store_structure['bags']['frontpage_public'] = {

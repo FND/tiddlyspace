@@ -11,7 +11,7 @@ from tiddlyweb.web.util import server_host_url, make_cookie
 from tiddlywebplugins.openid2 import Challenger as OpenID
 
 
-FRAGMENT_VALUE = 'auth:OpenID'
+FRAGMENT_PREFIX = 'auth:OpenID:'
 
 
 class Challenger(OpenID):
@@ -35,8 +35,10 @@ class Challenger(OpenID):
         if usersign.startswith('http'):
             usersign = usersign.split('://', 1)[1]
         usersign = usersign.rstrip('/')
-        uri = urlparse.urljoin(server_host_url(environ),
-                environ['tiddlyweb.query'].get('tiddlyweb_redirect', ['/'])[0])
+
+        redirect = environ['tiddlyweb.query'].get(
+            'tiddlyweb_redirect', ['/'])[0]
+        uri = urlparse.urljoin(server_host_url(environ), redirect)
 
         cookie_name = 'tiddlyweb_user'
         cookie_age = environ['tiddlyweb.config'].get('cookie_age', None)
@@ -44,7 +46,10 @@ class Challenger(OpenID):
             fragment = uri.rsplit('#', 1)[1]
         except (ValueError, IndexError):
             fragment = None
-        if fragment and fragment == FRAGMENT_VALUE:
+        if fragment:
+            openid = fragment[len(FRAGMENT_PREFIX):]
+            uri = uri.replace(FRAGMENT_PREFIX + openid,
+                    FRAGMENT_PREFIX + usersign)
             cookie_name = 'tiddlyweb_secondary_user'
             cookie_age = None
         secret = environ['tiddlyweb.config']['secret']

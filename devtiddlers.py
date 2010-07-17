@@ -1,7 +1,9 @@
 instance_tiddlers = {
+    'common': [
+        '../src/common.recipe'
+    ],
     'tiddlyspace': [
         '../src/lib/index.recipe',
-        '../src/model/index.recipe',
         '../src/backstage/index.recipe',
         '../src/shadows/index.recipe',
         '../src/styles/index.recipe',
