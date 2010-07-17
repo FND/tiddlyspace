@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkOps|
 |''Description''|tiddler batch operations|
 |''Author''|FND|
-|''Version''|0.8.0|
+|''Version''|0.8.1|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -54,14 +54,19 @@
 	opacity: 0.5;
 }
 
-.bulkops li .button {
-	float: right;
-}
-
 .bulkops ul li.error {
 	-tw-comment: excessive specificity due to TiddlyWiki -- NB: does not use ColorPalette;
 	border-color: #E77;
 	background-color: #F88;
+}
+
+.bulkops .button.active {
+	-tw-comment: IE6 does not support combined class selectors or opacity;
+	opacity: 0.5;
+}
+
+.bulkops li .button {
+	float: right;
 }
 !StyleSheetTW
 .viewer .bulkops ul {
@@ -134,12 +139,12 @@ var macro = config.macros.TiddlySpaceBulkOps = {
 	},
 	onFilter: function(ev) {
 		var btn = $(this);
-		if(btn.data("active")) {
+		if(btn.hasClass("active")) {
 			$("li.hidden", container).removeClass("hidden").slideDown("slow");
-			btn.data("active", false);
+			btn.removeClass("active");
 			return false;
 		}
-		btn.data("active", true);
+		btn.addClass("active");
 		var container = btn.closest(".bulkops");
 		var shared = [];
 		var candidates = [];
