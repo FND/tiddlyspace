@@ -17,6 +17,8 @@ jslib: qunit
 		http://github.com/tiddlyweb/chrjs/raw/master/main.js)
 	$(call wrap_jslib, src/lib/chrjs.users.js, \
 		http://github.com/tiddlyweb/chrjs/raw/master/users.js)
+	$(call wrap_jslib, src/lib/ajaxq.js, \
+		http://github.com/FND/jquery/raw/master/ajaxq.js)
 
 qunit:
 	mkdir -p src/test/qunit
