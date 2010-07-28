@@ -13,3 +13,4 @@ tiddler: TiddlySpaceCloneCommand.js
 tiddler: TiddlySpaceVisualization.js
 tiddler: TiddlySpaceChangePassword.js
 tiddler: TiddlySpaceToolbar.js
+tiddler: SyncStatusMacro.js
