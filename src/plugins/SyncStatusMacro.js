@@ -44,7 +44,9 @@ var doc = $(document);
 sssp.reportSuccess = function(msg, tiddler) {
 	doc.trigger("twsync.success", { msg: msg, tiddler: tiddler });
 };
+var _reportFailure = sssp.reportFailure;
 sssp.reportFailure = function(msg, tiddler, context) {
+	_reportFailure.apply(this, arguments);
 	doc.trigger("twsync.error", { msg: msg, tiddler: tiddler, context: context });
 };
 
