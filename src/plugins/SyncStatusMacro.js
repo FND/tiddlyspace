@@ -2,7 +2,7 @@
 |''Name''|<...>|
 |''Description''|<...>|
 |''Author''|FND|
-|''Version''|0.1|
+|''Version''|0.2|
 |''Status''|@@experimental@@|
 |''Source''|http://devpad.tiddlyspot.com/#<...>|
 |''CodeRepository''|http://svn.tiddlywiki.org/Trunk/contributors/FND/|
@@ -12,12 +12,11 @@
 |''Keywords''|serverSide|
 !Usage
 <<syncstatus>>
-!Revision History
-!!v0.1 (2010-07-28)
-* initial release
+!TODO
+* notification for errors
+* UI for error and success logs
 !StyleSheet
 .syncstatus div {
-	width: 100px;
 	height: 20px;
 }
 
@@ -49,7 +48,22 @@ sssp.reportFailure = function(msg, tiddler, context) {
 	doc.trigger("twsync.error", { msg: msg, tiddler: tiddler, context: context });
 };
 
+// hijack ServerSideSavingPlugin's tiddler sync methods to trigger notification -- XXX: should be folded into SSSP
+var _saveTiddler = sssp.saveTiddler;
+sssp.saveTiddler = function(tiddler) {
+	doc.trigger("twsync.start", { tiddler: tiddler, type: "save" });
+	_saveTiddler.apply(this, arguments);
+};
+var _removeTiddler = sssp.removeTiddler;
+sssp.removeTiddler = function(tiddler) {
+	doc.trigger("twsync.start", { tiddler: tiddler, type: "remove" });
+	_removeTiddler.apply(this, arguments);
+};
+
 var macro = config.macros.syncstatus = {
+	logSize: 10,
+	pending: 0,
+	log: [],
 	errors: [],
 
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
@@ -58,18 +72,28 @@ var macro = config.macros.syncstatus = {
 			append('<div class="normal" />'). // nested DIV for styling purposes (esp. IE)
 			appendTo(place);
 	},
-	onReq: function(ev, data) {
-console.log("req", data);
-		if(macro.errors.length == 0 && data.pending > 0) {
+	onStart: function(ev, data) {
+		macro.pending++;
+		if(macro.errors.length == 0) { // TODO: defer to avoid flashing for near-immediate operations
 			macro.reset().addClass("pending");
 		}
 	},
 	onSuccess: function(ev, data) {
+		macro.pending--;
+		macro.log.push({
+			timestamp: new Date(),
+			msg: "%0 %1 (%2)".format([data.msg, data.tiddler.title,
+				data.tiddler.fields["server.workspace"]])
+		});
+		if(macro.log.length > macro.logSize) {
+			macro.log.shift();
+		}
 		if(macro.errors.length == 0) {
 			macro.reset().addClass("normal");
 		}
 	},
 	onError: function(ev, data) {
+		macro.pending--;
 		macro.errors.push(data);
 		macro.reset().addClass("error");
 	},
@@ -79,9 +103,9 @@ console.log("req", data);
 	}
 };
 
+doc.bind("twsync.start", macro.onStart);
 doc.bind("twsync.success", macro.onSuccess);
 doc.bind("twsync.error", macro.onError);
-doc.bind("ajaxQueue", macro.onReq);
 
 var name = "StyleSheetSyncStatus";
 config.shadowTiddlers[name] = store.getTiddlerText(tiddler.title + "##StyleSheet");
