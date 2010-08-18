@@ -17,15 +17,14 @@ If no name is given eg. {{{<<following>>}}} or {{{<<follow>>}}} it will default 
 //{{{
 (function($) {
 
-
+var tweb = config.extensions.tiddlyweb;
+var tiddlyspace = config.extensions.tiddlyspace;
 var imageMacro = config.macros.image;
-var ns = config.extensions.tiddlyspace;
-var tiddlywebns = config.extensions.tiddlyweb;
 
 // provide support for sucking in tiddlers from the server
-ns.displayServerTiddler = function(src, title, workspace) {
+tiddlyspace.displayServerTiddler = function(src, title, workspace) {
 	var adaptor = store.getTiddlers()[0].getAdaptor();
-	tiddlywebns.getStatus(function(status) {
+	tweb.getStatus(function(status) {
 		var context = {
 			workspace: workspace,
                         headers: {"X-ControlView": "false"}
@@ -33,7 +32,7 @@ ns.displayServerTiddler = function(src, title, workspace) {
 		var isPublic = workspace.indexOf("_public") > -1;
 		var space = workspace.substr(workspace.indexOf("/") + 1).
 			replace("_public", "").replace("_private", "");
-		if(ns.currentSpace.name == space) {
+		if(tiddlyspace.currentSpace.name == space) {
 			space = isPublic ? "public" : "private";
 		} else {
 			space = "@%0".format([space]);
@@ -67,8 +66,8 @@ var followMacro = config.macros.followTiddlers = {
 	followTag: "follow",
 	follower_names_cache: {},
 	getHosts: function(callback) {
-		tiddlywebns.getStatus(function(status) {
-			callback(status.host, ns.getHost(status.server_host, "%0"));
+		tweb.getStatus(function(status) {
+			callback(status.host, tiddlyspace.getHost(status.server_host, "%0"));
 		});
 	},
 	handler: function(place, macroName, params, wikifier, paramString, tiddler) {
@@ -101,7 +100,7 @@ var followMacro = config.macros.followTiddlers = {
 			var link = $(ev.target);
 			var spaceName = link.attr("space");
 			var title = link.attr("title");
-			ns.displayServerTiddler(null, title, "bags/%0_public".format([spaceName]));
+			tiddlyspace.displayServerTiddler(null, title, "bags/%0_public".format([spaceName]));
 		};
 		for(var i = 0; i < tiddlers.length; i++) {
 			var tiddler = tiddlers[i];
@@ -165,10 +164,9 @@ var followMacro = config.macros.followTiddlers = {
 	},
 	_constructBagQuery: function(followers) {
 		var querySegments = [];
-		var currentSpaceName = ns.currentSpace.name;
 		for(var i = 0; i < followers.length; i++) {
 			var follower = followers[i];
-			if(follower != currentSpaceName) {
+			if(follower != tiddlyspace.currentSpace.name) {
 				querySegments.push("fbag:%0_public".format([encodeURI(follower)]));
 			}
 		}
@@ -180,7 +178,7 @@ var followMacro = config.macros.followTiddlers = {
 			var followers = [];
 			if(!user.anon) {
 				var username = user.name;
-				if(username == ns.currentSpace.name) { // just get the tiddlers in the local store
+				if(username == tiddlyspace.currentSpace.name) { // just get the tiddlers in the local store
 					var followerTiddlers = store.getTaggedTiddlers(followMacro.followTag);
 					for(var i = 0; i < followerTiddlers.length; i++) {
 						followers.push(followerTiddlers[i].title);
@@ -216,7 +214,7 @@ headers: {"X-ControlView": "false"}
 			}
 		};
 		if(!username) {
-			tiddlywebns.getUserInfo(followersCallback);
+			tweb.getUserInfo(followersCallback);
 		} else {
 			followersCallback({name: username});
 		}
@@ -248,7 +246,7 @@ var followersMacro = config.macros.followers = {
 			}
 		};
 		if(!username) {
-			tiddlywebns.getUserInfo(followersCallback);
+			tweb.getUserInfo(followersCallback);
 		} else {
 			followersCallback({name: username});
 		}
@@ -271,7 +269,7 @@ var followersMacro = config.macros.followers = {
 						if(field == "bag") {
 							spaceName = spaceName.replace("_public", "");
 						}
-						var spaceURI = "http://%0.tiddlyspace.com".format([spaceName]); // very bad. to replace.
+						var spaceURI = "http://%0.tiddlyspace.com".format([spaceName]); // XXX: very bad - replace!
 						var item = $('<li class="spaceName" />').appendTo(list)[0];
 						config.macros.tiddler.handler(item,null,null,null,
 							'name:%0 with:"%1" with:"%2" with:"%3"'.format([options.template, spaceName, spaceURI, tiddler.text]));
@@ -315,7 +313,7 @@ var followingMacro = config.macros.following = {
 			}
 		};
 		if(!username) {
-			tiddlywebns.getUserInfo(followingCallback);
+			tweb.getUserInfo(followingCallback);
 		} else {
 			followingCallback({name: username});
 		}
