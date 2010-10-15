@@ -64,7 +64,6 @@ test("activation", function() { // NB: assertions should be identical to firstRu
 	strictEqual(log.firstRun, undefined);
 	strictEqual(log.update, undefined);
 	strictEqual(log.palette, undefined);
-	strictEqual(log.avatar, undefined);
 	var flagTiddler = store.getTiddler("fooSetupFlag");
 	strictEqual(flagTiddler, undefined);
 
@@ -73,7 +72,6 @@ test("activation", function() { // NB: assertions should be identical to firstRu
 	strictEqual(log.firstRun, true);
 	strictEqual(log.update, undefined);
 	strictEqual(log.palette, true);
-	strictEqual(log.avatar, true);
 	strictEqual(log.autoSave.length, 2); // ColorPalette and SiteIcon handled separately
 	var flagTiddler = store.getTiddler("fooSetupFlag");
 	strictEqual(flagTiddler.fields.tiddlyspaceinit_version, "0.3");
@@ -83,7 +81,6 @@ test("firstRun", function() { // NB: assertions should be identical to activatio
 	strictEqual(log.firstRun, undefined);
 	strictEqual(log.update, undefined);
 	strictEqual(log.palette, undefined);
-	strictEqual(log.avatar, undefined);
 	var flagTiddler = store.getTiddler("fooSetupFlag");
 	strictEqual(flagTiddler, undefined);
 
@@ -92,11 +89,47 @@ test("firstRun", function() { // NB: assertions should be identical to activatio
 	strictEqual(log.firstRun, true);
 	strictEqual(log.update, undefined);
 	strictEqual(log.palette, true);
-	strictEqual(log.avatar, true);
 	strictEqual(log.autoSave.length, 2); // ColorPalette and SiteIcon handled separately
 	var flagTiddler = store.getTiddler("fooSetupFlag");
 	strictEqual(flagTiddler.fields.tiddlyspaceinit_version, "0.3");
 	strictEqual(flagTiddler.tags.indexOf("excludePublisher") > -1, true);
+});
+
+test("avatar creation", function() {
+	strictEqual(store.getTiddler("SiteIcon"), undefined);
+	strictEqual(log.avatar, undefined);
+
+	plugin.dispatch();
+
+	strictEqual(log.avatar, true);
+});
+
+test("avatar restoration", function() {
+	var tid = new Tiddler("SiteIcon");
+	tid.fields = {
+		"server.bag": "system-theme_public"
+	};
+	store.saveTiddler(tid);
+
+	strictEqual(log.avatar, undefined);
+
+	plugin.dispatch();
+
+	strictEqual(log.avatar, true);
+});
+
+test("avatar retention", function() {
+	var tid = new Tiddler("SiteIcon");
+	tid.fields = {
+		"server.bag": "foo_public"
+	};
+	store.saveTiddler(tid);
+
+	strictEqual(log.avatar, undefined);
+
+	plugin.dispatch();
+
+	strictEqual(log.avatar, undefined);
 });
 
 test("update from v0.1", function() {
@@ -109,14 +142,12 @@ test("update from v0.1", function() {
 	strictEqual(log.firstRun, undefined);
 	strictEqual(log.update, undefined);
 	strictEqual(log.palette, undefined);
-	strictEqual(log.avatar, undefined);
 
 	plugin.dispatch();
 
 	strictEqual(log.firstRun, undefined);
 	strictEqual(log.update, true);
 	strictEqual(log.palette, undefined);
-	strictEqual(log.avatar, true);
 	var flagTiddler = store.getTiddler("fooSetupFlag");
 	strictEqual(flagTiddler.fields.tiddlyspaceinit_version, "0.3");
 });
@@ -131,14 +162,12 @@ test("update from v0.2", function() {
 	strictEqual(log.firstRun, undefined);
 	strictEqual(log.update, undefined);
 	strictEqual(log.palette, undefined);
-	strictEqual(log.avatar, undefined);
 
 	plugin.dispatch();
 
 	strictEqual(log.firstRun, undefined);
 	strictEqual(log.update, true);
 	strictEqual(log.palette, undefined);
-	strictEqual(log.avatar, undefined);
 });
 
 test("update from v0.2", function() {

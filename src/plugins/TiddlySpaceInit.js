@@ -52,12 +52,17 @@ var plugin = config.extensions.TiddlySpaceInit = {
 			tid = store.saveTiddler(tid);
 			tiddlers = tiddlers.concat(plugin.firstRun(), tid);
 		}
+
+		// create or restore default avatar
+		var avatar = store.getTiddler("SiteIcon");
+		var bagPrefix = currentSpace.name + "_";
+		if(!avatar || avatar.fields["server.bag"].indexOf(bagPrefix) != 0) {
+			plugin.createAvatar();
+		}
+
 		autoSaveChanges(null, tiddlers);
 	},
 	update: function(curVersion, flagTiddler) {
-		if(curVersion < 0.2) {
-			this.createAvatar();
-		}
 		if(curVersion < 0.3) {
 			flagTiddler.tags.pushUnique("excludePublisher");
 		}
@@ -82,8 +87,6 @@ var plugin = config.extensions.TiddlySpaceInit = {
 		config.defaultCustomFields[wfield] = pubWorkspace; // XXX: hacky
 		config.macros.RandomColorPalette.generatePalette({}, true);
 		config.defaultCustomFields[wfield] = workspace;
-		// generate avatar
-		this.createAvatar();
 		return tiddlers;
 	},
 	createAvatar: function() {
