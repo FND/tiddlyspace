@@ -1,11 +1,11 @@
+tiddler: ../lib/loadScript.js
 tiddler: TiddlySpaceConfig.js
 tiddler: TiddlySpaceBackstage.js
 tiddler: TiddlySpaceInit.js
 tiddler: TiddlySpaceUserControls.js
-tiddler: TiddlySpaceIdentities.js
+tiddler: TiddlySpaceIdentities_dispatch.js
 tiddler: TiddlySpaceMembers.js
 tiddler: TiddlySpaceSpaces.js
 tiddler: TiddlySpaceInclusion.js
 tiddler: TiddlySpaceCloneCommand.js
 tiddler: TiddlySpaceChangePassword.js
-
