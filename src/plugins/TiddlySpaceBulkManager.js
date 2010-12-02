@@ -2,7 +2,7 @@
 |''Name''|TiddlySpaceBulkManager|
 |''Description''|tiddler bulk operations|
 |''Author''|FND|
-|''Version''|0.1.0|
+|''Version''|0.2.0|
 |''Status''|@@experimental@@|
 |''Source''|<...>|
 |''CodeRepository''|<...>|
@@ -26,11 +26,12 @@ var bulkmgr = config.macros.bulkManager = {
 		empty: "no tiddlers found", // XXX: rephrase
 		delLabel: "delete",
 		delTooltip: "delete selected tiddlers",
+		delError: "error removing %0 from bag %1",
 		pending: "loading %0..." // XXX: rename?
 	},
 	listViewTemplate: {
 		columns: [
-			{ name: "selected", field: "Selected", rowName: "title", type: "Selector" },
+			{ name: "selected", field: "Selected", rowName: "identifier", type: "Selector" },
 			{ name: "tiddler", title: "Tiddler", field: "title", type: "String" }, // XXX: type should be link!?
 			{ name: "type", title: "Type", field: "state", type: "String" },
 			{ name: "tags", title: "Tags", field: "tags", type: "Tags" }
@@ -47,8 +48,24 @@ var bulkmgr = config.macros.bulkManager = {
 			placeholder.replaceWith(el);
 		});
 	},
-	onDelete: function(ev, selectedRows) {
-		// TODO
+	onDelete: function(ev, el, tids) {
+		var errback = function(xhr, error, exc, tid) {
+			var msg = bulkmgr.locale.delError.format(tid.title, tid.bag.name);
+			displayMessage(msg);
+		};
+		if(confirm("ORLY?")) { // TODO: proper confirmation dialog
+			var tiddlers = [];
+			$.each(tids, function(i, tid) {
+				var tiddler = store.getTiddler(tid.title);
+				if(tiddler && tiddler.fields["server.bag"] == tid.bag.name) {
+					tiddlers.push(tiddler);
+					store.removeTiddler(tiddler.title);
+				} else {
+					tid["delete"]($.noop, errback);
+				}
+			});
+			autoSaveChanges(null, tiddlers);
+		}
 	},
 	renderUI: function(tids) {
 		var msg = this.locale;
@@ -57,17 +74,26 @@ var bulkmgr = config.macros.bulkManager = {
 		wiz.addStep(msg.desc, "");
 		var pane = $(el).find(".wizardStep");
 
+		var entries;
+
 		var onDelete = function(ev) {
-			var rows = $("input[type=checkbox]:checked", pane).map(function(i, node) {
-				return $(node).closest("tr")[0];
+			ev = ev || window.event;
+			var el = resolveTarget(ev);
+
+			var selector = "input[type=checkbox]:checked";
+			var tids = $(selector, pane).map(function(i, node) {
+				var id = $(node).attr("rowName");
+				var pos = entries.findByField("identifier", id);
+				return entries[pos];
 			});
-			bulkmgr.onDelete(ev, rows);
+
+			bulkmgr.onDelete(ev, el, tids);
 		};
 
 		if(tids.length == 0) {
 			$("<em />").text(msg.empty).appendTo(pane);
 		} else {
-			var entries = determineEntries(tids);
+			entries = determineEntries(tids);
 			ListView.create(pane[0], entries, this.listViewTemplate);
 			wiz.setButtons([
 				{ caption: msg.delLabel, tooltip: msg.delTooltip, onClick: onDelete }
@@ -83,7 +109,7 @@ var bulkmgr = config.macros.bulkManager = {
 		var tids = [];
 		var res = 0;
 		var observer = function(tiddlers, status, xhr, bag) {
-			tids = tids.concat(tiddlers);
+			tids = tids.concat(tiddlers); // TODO: sort!?
 			res++;
 			if(res == bags.length) {
 				callback(tids);
@@ -106,6 +132,8 @@ var bulkmgr = config.macros.bulkManager = {
 // augments chrjs TiddlerS with ListView-related information
 var determineEntries = function(tids) {
 	return $.map(tids, function(tid, i) {
+		tid.identifier = "%0/%1".format(encodeURIComponent(tid.bag.name),
+			encodeURIComponent(tid.title));
 		var type = tid.bag.name.replace(currentSpace + "_", ""); // XXX: brittle?
 		tid.state = type == "archive" ? "archived" : type; // XXX: i18n -- XXX: modifiying existing object is evil!?
 		return tid;
